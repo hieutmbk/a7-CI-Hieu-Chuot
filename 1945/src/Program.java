@@ -4,7 +4,9 @@
 public class Program {
     public static void main(String args[]){
         System.out.println("Hello Android 7");
+
         GameWindow gameWindow = new GameWindow();
-//Hieu da o day
+        Thread thread  = new Thread(gameWindow);
+        thread.start();
     }
 }
