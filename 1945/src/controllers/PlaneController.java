@@ -1,7 +1,8 @@
 package controllers;
 
-import models.PlaneModel;
-import view.PlaneView;
+import models.Model;
+import utils.Utils;
+import view.View;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -9,36 +10,36 @@ import java.awt.event.KeyEvent;
 /**
  * Created by minhh on 03/12/2016.
  */
-public class PlaneController {
-    public PlaneModel planeModel;
-    public PlaneView planeView;
+public class PlaneController extends Controller {
+
+    private static final int SPEED = 5;
 
     public KeySetting keySetting;
 
-    public PlaneController(PlaneModel planeModel, PlaneView planeView) {
-        this.planeModel = planeModel;
-        this.planeView = planeView;
+    public PlaneController(Model model, View view) {
+        super(model, view);
     }
 
     public void keyPressed(KeyEvent e){
         if (keySetting != null){
             int keyCode = e.getKeyCode();
             if(keyCode == keySetting.getKeyUp()){
-                planeModel.move(0,-5);
+                model.move(0,-SPEED); // hardcode
             }else if(keyCode == keySetting.getKeyDown()){
-                planeModel.move(0,+5);
+                model.move(0,SPEED);
             }else if(keyCode == keySetting.getKeyLeft()){
-                planeModel.move(-5,0);
+                model.move(-SPEED,0);
             }else if(keyCode == keySetting.getKeyRight()){
-                planeModel.move(+5,0);
+                model.move(+SPEED,0);
             }
         }
     }
-    public void draw(Graphics g){
-        planeView.draw(g,planeModel);
+    //Design parttern : Factory
+    public static PlaneController creatPlane(int x,int y){
+        PlaneController planeController = new PlaneController(
+                new Model(x,y,70,50),
+                new View(Utils.loadImage("resources/plane3.png")));
+        return planeController;
     }
 
-    public void run(){
-
-    }
 }

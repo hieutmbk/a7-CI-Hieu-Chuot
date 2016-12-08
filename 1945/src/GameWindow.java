@@ -1,20 +1,13 @@
-import controllers.BulletController;
-import controllers.KeySetting;
-import controllers.PlaneController;
-import models.BulletModel;
-import models.PlaneModel;
-import view.BulletView;
-import view.PlaneView;
+import controllers.*;
+import utils.Utils;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+
 import java.util.Vector;
 
 //Data abstraction
@@ -25,22 +18,26 @@ public class GameWindow extends Frame implements  Runnable{
     Image background;
 
     PlaneController planeController;
+    EnemyPlaneController enemyPlaneController;
 
     Vector<BulletController> bulletVector;
+    Vector<EnemyBulletController> enemyBulletVector;
 
     BufferedImage backBuffer;
 
     public GameWindow (){
         bulletVector = new Vector<>();
+        enemyBulletVector = new Vector<>();
 
-        PlaneModel planeModel = new PlaneModel(300,300);
-        PlaneView planeView = new PlaneView(loadImage("resources/plane3.png"));
         KeySetting keySetting = new KeySetting(KeyEvent.VK_UP,KeyEvent.VK_DOWN,KeyEvent.VK_LEFT,KeyEvent.VK_RIGHT);
-        planeController = new PlaneController(planeModel,planeView);
+        planeController = PlaneController.creatPlane(300,500);
         planeController.keySetting = keySetting;
+
+        enemyPlaneController = EnemyPlaneController.createPlaneCom(400,50);
 
         setVisible(true);
         setSize(800,600);
+        background = Utils.loadImage("resources/background.png");
         backBuffer = new BufferedImage(800,600,BufferedImage.TYPE_INT_ARGB);
 
         addWindowListener(new WindowListener() {
@@ -80,7 +77,6 @@ public class GameWindow extends Frame implements  Runnable{
 
             }
         });
-        background = loadImage("resources/background.png");
 
         addKeyListener(new KeyListener() {
             @Override
@@ -93,14 +89,13 @@ public class GameWindow extends Frame implements  Runnable{
                 System.out.println("keyPressed");
                 planeController.keyPressed(e);
                 if(e.getKeyCode() == KeyEvent.VK_SPACE){
-                    BulletModel bulletModel = new BulletModel(planeModel.getX(),planeModel.getY());
-                    BulletView bulletView = new BulletView(loadImage("resources/bullet.png"));
-
-                    BulletController bulletController = new BulletController(bulletModel,bulletView);
-                    bulletVector.add(bulletController);
-                }
+                      int bulletX = planeController.getModel().getX() + 35 -6;
+                      int bulletY = planeController.getModel().getY() - 30;
+                      BulletController bulletController = BulletController.creatBullet(bulletX,bulletY);
+                      bulletVector.add(bulletController);
+               }
             }
-            @Override
+
             public void keyReleased(KeyEvent e) {
                 System.out.println("keyReleased");
             }
@@ -108,41 +103,47 @@ public class GameWindow extends Frame implements  Runnable{
 
     }
 
-    private Image loadImage(String url){
-        try {
-            Image image = ImageIO.read(new File(url));
-            return image;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return  null;
-        }
-    }
 
-    @Override
+
     public void update(Graphics g) {
         //Prepare backbuffer
         Graphics backBufferGraphics = backBuffer.getGraphics();
         backBufferGraphics.drawImage(background,0,0,800,600,null);
         planeController.draw(backBufferGraphics);
-
-       for(BulletController bulletController : bulletVector)
-        bulletController.draw(backBufferGraphics);
+        enemyPlaneController.draw(backBufferGraphics);
+        for(BulletController bulletController : bulletVector)
+                bulletController.draw(backBufferGraphics);
+        for(EnemyBulletController enemyBulletController : enemyBulletVector)
+                enemyBulletController.draw(backBufferGraphics);
 
         //Update window
         g.drawImage(backBuffer,0,0,800,600,null);
     }
 
-    @Override
+
     public void run() {
+        int time = 0;
         while (true) {
-            this.repaint();
+
             try {
+                time +=1;
+                this.repaint();
                 Thread.sleep(17);
+                enemyPlaneController.run();
                 for (BulletController bulletController : bulletVector)
-                    bulletController.move(0,-5);
+                    bulletController.run();
+                for(EnemyBulletController enemyBulletController : enemyBulletVector)
+                    enemyBulletController.run();
+
+                if(time % 30 == 0) {
+                    EnemyBulletController enemyBulletController = EnemyBulletController.createComtBullet(enemyPlaneController.getModel().getX() + 35 - 6, enemyPlaneController.getModel().getY() + 30);
+                   enemyBulletVector.add(enemyBulletController);
+                }
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
+
 }
