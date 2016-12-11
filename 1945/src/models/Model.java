@@ -49,6 +49,12 @@ public class Model {
     public void setWidth(int width) {
         this.width = width;
     }
+    public int getBottom(){
+        return  this.y + this.getHeight();
+    }
+    public int getMid(){
+        return this.x + this.getWidth()/2;
+    }
 
     public int getHeight() {
         return height;
