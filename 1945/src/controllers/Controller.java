@@ -18,6 +18,8 @@ public class Controller {
     }
 
     public void run(){
+    }
+    public void update(){
 
     }
 

@@ -1,11 +1,8 @@
 package controllers.managers;
 
 import controllers.EnemyController;
-import controllers.EnemyGreenController;
 
-import java.awt.*;
 import java.util.Random;
-import java.util.Vector;
 
 /**
  * Created by minhh on 10/12/2016.
@@ -16,7 +13,7 @@ public class EnemyControllerManager extends  ControllerManager{
     public  void run(){
         super.run();
         timeCounter++;
-        if(timeCounter > 50){
+        if(timeCounter > 100){
             spawn();
             timeCounter = 0;
         }

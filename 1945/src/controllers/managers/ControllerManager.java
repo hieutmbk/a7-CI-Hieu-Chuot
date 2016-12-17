@@ -3,6 +3,7 @@ package controllers.managers;
 import controllers.Controller;
 
 import java.awt.*;
+import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -16,8 +17,16 @@ public class ControllerManager {
     }
 
     public void draw(Graphics g){
-        for (Controller controller : controllerVector)
+        for (Controller controller : controllerVector) {
             controller.draw(g);
+        }
+        Iterator<Controller> iterator = this.controllerVector.iterator();
+        while(iterator.hasNext()){
+            Controller controller = iterator.next();
+            if(!controller.getModel().isAlive()){
+                iterator.remove();
+            }
+        }
     }
 
     public void run(){

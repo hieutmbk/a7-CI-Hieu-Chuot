@@ -1,6 +1,6 @@
 import controllers.*;
+import controllers.managers.BodyManager;
 import controllers.managers.EnemyControllerManager;
-import controllers.managers.EnemyGreenControllerManager;
 import utils.Utils;
 
 import java.awt.*;
@@ -22,28 +22,27 @@ public class GameWindow extends Frame implements  Runnable{
     PlaneController planeController;
 
     EnemyControllerManager enemyControllerManager;
-    EnemyGreenControllerManager enemyGreenControllerManager;
+
 
     Vector<BulletController> bulletVector;
     Vector<EnemyBulletController> enemyBulletVector;
 
     BufferedImage backBuffer;
 
-    public GameWindow (){
+    public GameWindow () {
         bulletVector = new Vector<>();
         enemyBulletVector = new Vector<>();
 
-        KeySetting keySetting = new KeySetting(KeyEvent.VK_UP,KeyEvent.VK_DOWN,KeyEvent.VK_LEFT,KeyEvent.VK_RIGHT);
-        planeController = PlaneController.creatPlane(300,500);
+        KeySetting keySetting = new KeySetting(KeyEvent.VK_UP, KeyEvent.VK_DOWN, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);
+        planeController = PlaneController.creatPlane(300, 500);
         planeController.keySetting = keySetting;
 
         enemyControllerManager = new EnemyControllerManager();
-        enemyGreenControllerManager = new EnemyGreenControllerManager();
 
         setVisible(true);
-        setSize(800,600);
+        setSize(800, 600);
         background = Utils.loadImage("resources/background.png");
-        backBuffer = new BufferedImage(800,600,BufferedImage.TYPE_INT_ARGB);
+        backBuffer = new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
 
         addWindowListener(new WindowListener() {
             @Override
@@ -93,10 +92,10 @@ public class GameWindow extends Frame implements  Runnable{
             public void keyPressed(KeyEvent e) {
                 System.out.println("keyPressed");
                 planeController.keyPressed(e);
-                if(e.getKeyCode() == KeyEvent.VK_SPACE){
-                    int bulletX = planeController.getModel().getX() + 35 -6;
+                if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    int bulletX = planeController.getModel().getX() + 35 - 6;
                     int bulletY = planeController.getModel().getY() - 30;
-                    BulletController bulletController = BulletController.creatBullet(bulletX,bulletY);
+                    BulletController bulletController = BulletController.creatBullet(bulletX, bulletY);
                     bulletVector.add(bulletController);
                 }
             }
@@ -107,16 +106,12 @@ public class GameWindow extends Frame implements  Runnable{
         });
 
     }
-
-
-
     public void update(Graphics g) {
         //Prepare backbuffer
         Graphics backBufferGraphics = backBuffer.getGraphics();
         backBufferGraphics.drawImage(background,0,0,800,600,null);
-        planeController.draw(backBufferGraphics);
+        if(planeController.getModel().isAlive()) planeController.draw(backBufferGraphics);
         enemyControllerManager.draw(backBufferGraphics);
-        enemyGreenControllerManager.draw(backBufferGraphics);
         for(BulletController bulletController : bulletVector)
                 bulletController.draw(backBufferGraphics);
         for(EnemyBulletController enemyBulletController : enemyBulletVector)
@@ -133,9 +128,9 @@ public class GameWindow extends Frame implements  Runnable{
                 this.repaint();
                 Thread.sleep(17);
                 enemyControllerManager.run();
-               enemyGreenControllerManager.run();
                 for (BulletController bulletController : bulletVector)
                     bulletController.run();
+                BodyManager.instance.checkContact();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
