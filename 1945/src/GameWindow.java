@@ -1,48 +1,51 @@
 import controllers.*;
-import controllers.managers.BodyManager;
-import controllers.managers.EnemyControllerManager;
-import utils.Utils;
+import controllers.enemies.EnemyBulletController;
+import controllers.manangers.BodyManager;
+import controllers.manangers.BomControllerManager;
+import controllers.manangers.ControllerManager;
+import controllers.manangers.EnemyControllerManager;
 
 import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
-
 import java.util.Vector;
 
-//Data abstraction
+import static utils.Utils.loadImage;
+
+// Data abstraction
+
 /**
- * Created by minhh on 30/11/2016.
+ * Created by apple on 11/30/16.
  */
-public class GameWindow extends Frame implements  Runnable{
+public class GameWindow extends Frame implements Runnable {
     Image background;
 
-    PlaneController planeController;
-
-    EnemyControllerManager enemyControllerManager;
-
-
-    Vector<BulletController> bulletVector;
-    Vector<EnemyBulletController> enemyBulletVector;
-
     BufferedImage backBuffer;
+    GameSetting gameSetting;
 
-    public GameWindow () {
-        bulletVector = new Vector<>();
-        enemyBulletVector = new Vector<>();
+    Vector<BaseController> controllers;
 
-        KeySetting keySetting = new KeySetting(KeyEvent.VK_UP, KeyEvent.VK_DOWN, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);
-        planeController = PlaneController.creatPlane(300, 500);
-        planeController.keySetting = keySetting;
+    public GameWindow() {
 
-        enemyControllerManager = new EnemyControllerManager();
+        configSettings();
+
+        controllers = new Vector<>();
+        controllers.add(ControllerManager.explosion);
+        controllers.add(new EnemyControllerManager());
+        controllers.add(PlaneController.instance);
+        controllers.add(BodyManager.instance);
+        controllers.add(ControllerManager.enemyBullet);
+        controllers.add(new BomControllerManager());
 
         setVisible(true);
-        setSize(800, 600);
-        background = Utils.loadImage("resources/background.png");
-        backBuffer = new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
+        setSize(gameSetting.getWidth(), gameSetting.getHeight());
+
+        backBuffer = new BufferedImage(gameSetting.getWidth(), gameSetting.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
         addWindowListener(new WindowListener() {
             @Override
@@ -59,16 +62,17 @@ public class GameWindow extends Frame implements  Runnable{
             @Override
             public void windowClosed(WindowEvent e) {
                 System.out.println("windowClosed");
+
             }
 
             @Override
             public void windowIconified(WindowEvent e) {
-                System.out.println("windowIconified");
+
             }
 
             @Override
             public void windowDeiconified(WindowEvent e) {
-                System.out.println("windowDeiconified");
+
             }
 
             @Override
@@ -81,60 +85,67 @@ public class GameWindow extends Frame implements  Runnable{
 
             }
         });
+        background = loadImage("resources/background.png");
 
         addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-                System.out.println("keyTyped");
+                System.out.println( " keyTyped");
             }
 
             @Override
             public void keyPressed(KeyEvent e) {
                 System.out.println("keyPressed");
-                planeController.keyPressed(e);
-                if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-                    int bulletX = planeController.getModel().getX() + 35 - 6;
-                    int bulletY = planeController.getModel().getY() - 30;
-                    BulletController bulletController = BulletController.creatBullet(bulletX, bulletY);
-                    bulletVector.add(bulletController);
-                }
+                PlaneController.instance.keyPressed(e);
             }
 
+            @Override
             public void keyReleased(KeyEvent e) {
                 System.out.println("keyReleased");
             }
         });
-
     }
+
+    private void configSettings() {
+        PlaneController.instance.keySetting = new KeySetting(
+                KeyEvent.VK_UP,
+                KeyEvent.VK_DOWN,
+                KeyEvent.VK_LEFT,
+                KeyEvent.VK_RIGHT,
+                KeyEvent.VK_SPACE
+        );
+        gameSetting = GameSetting.instance;
+    }
+
+
+    //Utilities
+
+
+    @Override
     public void update(Graphics g) {
-        //Prepare backbuffer
+        // Prepare backbuffer
         Graphics backBufferGraphics = backBuffer.getGraphics();
-        backBufferGraphics.drawImage(background,0,0,800,600,null);
-        if(planeController.getModel().isAlive()) planeController.draw(backBufferGraphics);
-        enemyControllerManager.draw(backBufferGraphics);
-        for(BulletController bulletController : bulletVector)
-                bulletController.draw(backBufferGraphics);
-        for(EnemyBulletController enemyBulletController : enemyBulletVector)
-                enemyBulletController.draw(backBufferGraphics);
+        backBufferGraphics.drawImage(background, 0, 0, gameSetting.getWidth(), gameSetting.getHeight(), null);
+        for (BaseController baseController: controllers){
+            baseController.draw(backBufferGraphics);
+        }
 
-        //Update window
-        g.drawImage(backBuffer,0,0,800,600,null);
+        // Update window
+        g.drawImage(backBuffer, 0, 0, gameSetting.getWidth(), gameSetting.getHeight(), null);
     }
 
-
+    @Override
     public void run() {
         while (true) {
             try {
                 this.repaint();
                 Thread.sleep(17);
-                enemyControllerManager.run();
-                for (BulletController bulletController : bulletVector)
-                    bulletController.run();
-                BodyManager.instance.checkContact();
+                for(BaseController baseController: controllers) {
+                    baseController.run();
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
-
 }
