@@ -56,7 +56,6 @@ public class EnemyBulletController extends Controller implements Body {
     public void onContact(Body other) {
         if(other instanceof PlaneController) {
             System.out.println("EB:)");
-            this.getModel().setAlive(false);
         }
     }
 }

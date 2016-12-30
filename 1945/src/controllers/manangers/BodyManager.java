@@ -26,6 +26,13 @@ public class BodyManager implements BaseController{
     }
 
     public void run() {
+        Iterator<Body> iterator = this.bodies.iterator();
+        while(iterator.hasNext()) {
+            Body  body = iterator.next();
+            if (!body.getModel().isAlive()) {
+                iterator.remove();
+            }
+        }
 
         for(int i = 0; i < bodies.size() - 1; i++) {
             for(int j = i + 1; j < bodies.size(); j++) {
@@ -41,25 +48,12 @@ public class BodyManager implements BaseController{
                 }
             }
         }
-        Iterator<Body> iterator = this.bodies.iterator();
-        while(iterator.hasNext()) {
-            Body  body = iterator.next();
-            if (!body.getModel().isAlive()) {
-                iterator.remove();
-            }
-        }
-
     }
+
     @Override
     public void draw(Graphics g) {
 
     }
 
-    public Vector<Body> getBodies() {
-        return bodies;
-    }
 
-    public void setBodies(Vector<Body> bodies) {
-        this.bodies = bodies;
-    }
 }

@@ -32,6 +32,10 @@ public class Controller implements BaseController {
 
     }
 
+    public void destroy() {
+        this.model.setAlive(false);
+    }
+
     public void draw(Graphics g) {
         view.draw(g, model);
     }

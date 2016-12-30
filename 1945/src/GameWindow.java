@@ -1,9 +1,11 @@
 import controllers.*;
-import controllers.enemies.EnemyBulletController;
 import controllers.manangers.BodyManager;
-import controllers.manangers.BomControllerManager;
 import controllers.manangers.ControllerManager;
 import controllers.manangers.EnemyControllerManager;
+import controllers.scenes.GameScene;
+import controllers.scenes.MenuScene;
+import controllers.scenes.PlayGameScene;
+import controllers.scenes.SceneListener;
 
 import java.awt.*;
 import java.awt.Graphics;
@@ -13,6 +15,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
+import java.util.Stack;
 import java.util.Vector;
 
 import static utils.Utils.loadImage;
@@ -22,31 +25,25 @@ import static utils.Utils.loadImage;
 /**
  * Created by apple on 11/30/16.
  */
-public class GameWindow extends Frame implements Runnable {
-    Image background;
+public class GameWindow extends Frame implements Runnable,SceneListener {
 
     BufferedImage backBuffer;
     GameSetting gameSetting;
+    GameScene curreScene;
 
-    Vector<BaseController> controllers;
+    Stack<GameScene> gameSceneStack;
 
     public GameWindow() {
 
+        gameSceneStack = new Stack<>();
+
+        this.replaceScene(new MenuScene(),false);
+
         configSettings();
-
-        controllers = new Vector<>();
-        controllers.add(ControllerManager.explosion);
-        controllers.add(new EnemyControllerManager());
-        controllers.add(PlaneController.instance);
-        controllers.add(BodyManager.instance);
-        controllers.add(ControllerManager.enemyBullet);
-        controllers.add(new BomControllerManager());
-
         setVisible(true);
         setSize(gameSetting.getWidth(), gameSetting.getHeight());
 
         backBuffer = new BufferedImage(gameSetting.getWidth(), gameSetting.getHeight(), BufferedImage.TYPE_INT_ARGB);
-
         addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {
@@ -85,7 +82,7 @@ public class GameWindow extends Frame implements Runnable {
 
             }
         });
-        background = loadImage("resources/background.png");
+
 
         addKeyListener(new KeyListener() {
             @Override
@@ -96,7 +93,7 @@ public class GameWindow extends Frame implements Runnable {
             @Override
             public void keyPressed(KeyEvent e) {
                 System.out.println("keyPressed");
-                PlaneController.instance.keyPressed(e);
+                curreScene.keyPressed(e);
             }
 
             @Override
@@ -104,6 +101,26 @@ public class GameWindow extends Frame implements Runnable {
                 System.out.println("keyReleased");
             }
         });
+    }
+
+    public void replaceScene(GameScene newScene,boolean addToBackStack){
+        if(addToBackStack && curreScene != null){
+            gameSceneStack.push(curreScene);
+        }
+        curreScene = newScene;
+
+        curreScene.setSceneListener(new SceneListener() {
+            @Override
+            public void replaceScene(GameScene newScene, boolean addToBackStack) {
+                GameWindow.this.replaceScene(newScene,addToBackStack);
+            }
+        });
+    }
+
+    public void back(){
+        if(!gameSceneStack.isEmpty()){
+            curreScene = gameSceneStack.pop();
+        }
     }
 
     private void configSettings() {
@@ -125,11 +142,7 @@ public class GameWindow extends Frame implements Runnable {
     public void update(Graphics g) {
         // Prepare backbuffer
         Graphics backBufferGraphics = backBuffer.getGraphics();
-        backBufferGraphics.drawImage(background, 0, 0, gameSetting.getWidth(), gameSetting.getHeight(), null);
-        for (BaseController baseController: controllers){
-            baseController.draw(backBufferGraphics);
-        }
-
+        curreScene.update(backBufferGraphics);
         // Update window
         g.drawImage(backBuffer, 0, 0, gameSetting.getWidth(), gameSetting.getHeight(), null);
     }
@@ -140,9 +153,8 @@ public class GameWindow extends Frame implements Runnable {
             try {
                 this.repaint();
                 Thread.sleep(17);
-                for(BaseController baseController: controllers) {
-                    baseController.run();
-                }
+                curreScene.run();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

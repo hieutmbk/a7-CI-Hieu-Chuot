@@ -23,6 +23,10 @@ public class Utils {
         }
     }
 
+    public static BufferedImage loadImageRes(String path) {
+        return loadImage("resources/" + path);
+    }
+
     public static void playSound(String audioUrl, boolean repeat) {
 
         File soundFile = new File(audioUrl);

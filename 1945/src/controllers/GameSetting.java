@@ -10,7 +10,7 @@ public class GameSetting {
     private int width;
     private int height;
 
-    public static final GameSetting instance = new GameSetting(800, 600);
+    public static final GameSetting instance = new GameSetting(600, 400);
 
     private GameSetting(int width, int height) {
         this.width = width;

@@ -21,7 +21,7 @@ public class ControllerManager implements BaseController {
 
     public static final ControllerManager enemyBullet = new ControllerManager();
     public static final ControllerManager explosion = new ControllerManager();
-
+    public static final ControllerManager instance = new ControllerManager();
 
 
     public void draw(Graphics g) {

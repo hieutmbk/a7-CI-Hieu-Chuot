@@ -7,6 +7,6 @@ public class MoveStraightDownBehavior implements MoveBehavior {
 
     @Override
     public void doMove(EnemyController enemyController) {
-        enemyController.getModel().move(0, 3);
+        enemyController.getModel().move(0, 5);
     }
 }

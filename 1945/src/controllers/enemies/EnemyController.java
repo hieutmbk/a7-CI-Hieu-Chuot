@@ -4,8 +4,12 @@ import controllers.Body;
 import controllers.BulletController;
 import controllers.Controller;
 import controllers.ExplosionController;
+import controllers.gifts.BombController;
 import controllers.manangers.BodyManager;
 import controllers.manangers.ControllerManager;
+import controllers.notifications.EventSubcriber;
+import controllers.notifications.EventType;
+import controllers.notifications.NotificationCenter;
 import models.Model;
 import utils.Utils;
 import views.Animation;
@@ -20,7 +24,7 @@ import java.util.Vector;
  * Created by apple on 12/10/16.
  */
 
-public class EnemyController extends Controller implements Body {
+public class EnemyController extends Controller implements Body, EventSubcriber {
 
     private static final int WIDTH = 35;
     private static final int HEIGHT = 30;
@@ -37,9 +41,12 @@ public class EnemyController extends Controller implements Body {
 
     public EnemyController(Model model, View view, MoveBehavior moveBehavior, ShootBehavior shootBehavior) {
         super(model, view);
+
         timeCounter = 0;
         this.moveBehavior = moveBehavior;
         BodyManager.instance.register(this);
+        NotificationCenter.instance.register(this);
+
         this.shootBehavior = shootBehavior;
     }
 
@@ -67,7 +74,6 @@ public class EnemyController extends Controller implements Body {
 //
 //        // Add bullet to vector
 //        this.enemyBulletControllers.add(enemyBulletController);
-        Utils.playSound("resources/shoot.wav",false);
         if (shootBehavior != null){
 
             shootBehavior.doShot(this);
@@ -111,16 +117,33 @@ public class EnemyController extends Controller implements Body {
     public void onContact(Body other) {
         if (other instanceof BulletController) {
             System.out.println("Huhu");
-            this.model.setAlive(false);
+
+            destroy();
+
+            // Create BOMB
+            BombController bombController = BombController.create(model.getX(), model.getY());
+
+            // Add to ControllerManager
+            ControllerManager.instance.add(bombController);
         }
     }
 
-    public void destroy(){
+    public void destroy() {
         ExplosionController explosionController = new ExplosionController(
                 new Model(this.getModel().getX(), this.getModel().getY(), 32, 32),
                 new Animation(Utils.loadSheet("resources/explosion.png", 32,32,1,6))
         );
         ControllerManager.explosion.add(explosionController);
+        this.model.setAlive(false);
     }
 
+    @Override
+    public boolean onEvent(EventType eventType, Object params) {
+        switch (eventType) {
+            case BOMB_EXPLOSION:
+                this.destroy();
+                return false;
+        }
+        return true;
+    }
 }
